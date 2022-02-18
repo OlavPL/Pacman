@@ -1,20 +1,22 @@
 package Main;
 
+import Main.Moveables.Player;
 import javafx.animation.AnimationTimer;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
+
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Deque;
 
 public class GameUpdate extends AnimationTimer {
     private final Deque<KeyCode> movementStack = new ArrayDeque<>();
     private final Player player;
-    public GameUpdate(Player player){
+
+
+    public GameUpdate(Player player) {
         this.player = player;
         start();
     }
-
 
     @Override
     public void handle(long l) {
