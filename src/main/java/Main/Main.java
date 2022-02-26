@@ -1,48 +1,45 @@
 package Main;
 
-import Main.Moveables.MoveableImgView;
+import Main.Moveables.Player;
+import Main.panes.BottomPane;
+import Main.panes.HighscorePane;
+import Main.panes.OriginalLevel;
 import javafx.application.Application;
-import javafx.geometry.Point3D;
 import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Scanner;
-
-import static java.lang.Integer.parseInt;
 
 public class Main extends Application {
     private final static int SCALE = 3;
+    private final static int WIDTH = 196;
+    private final static int HEIGHT = 248;
+    private static final BorderPane root = new BorderPane();
+    private static OriginalLevel gamePane;
+
     @Override
     public void start(Stage stage) {
 
-        OriginalLevel level = new OriginalLevel(SCALE);
-        Scene scene = new Scene(level);
-        level.getGameUpdate().setListenerOnScene(scene);
+        gamePane = new OriginalLevel(SCALE, WIDTH, HEIGHT);
+        root.setTop(new HighscorePane(SCALE, WIDTH));
+        root.setCenter(gamePane);
+        root.setBottom(new BottomPane(SCALE, WIDTH));
+        Scene scene = new Scene(root);
+        gamePane.getGameUpdate().setListenerOnScene(scene);
         stage.setScene(scene);
-
         stage.setTitle("Pacman");
         stage.setResizable(false);
         stage.show();
     }
 
-    public static ArrayList<Point3D> fileToHashMap(String filePath, int scale){
-        ArrayList<Point3D> pathArray= new ArrayList<>();
-        try {
-            Scanner scanner = new Scanner(new File(filePath));
-            while (scanner.hasNextLine()){
-                String string = scanner.nextLine();
-                String[] arr = string.split(";");
-                pathArray.add(new Point3D(parseInt(arr[0])*scale, parseInt(arr[1])*scale, parseInt(arr[2])*scale));
-            }
-            scanner.close();
-            return pathArray;
-        }catch (IOException IOexc){
-            IOexc.printStackTrace();
-        }
-        return null;
+    public static void gameWon(Player player){
+        OriginalLevel gamePane2 = new OriginalLevel(SCALE, WIDTH, HEIGHT);
+        gamePane2.getGameUpdate().setListenerOnScene(root.getCenter().getScene());
+        player.getAudioClip().stop();
+        player.getAnimation().stop();
+        gamePane.getGameUpdate().stop();
+        root.getChildren().remove(gamePane);
+        gamePane = gamePane2;
+        root.setCenter(gamePane2);
     }
 
     public static void main(String[] args) {

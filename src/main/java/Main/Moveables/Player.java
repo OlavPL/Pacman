@@ -1,43 +1,46 @@
 package Main.Moveables;
 
 import Main.Consumable;
-import Main.OriginalLevel;
+import Main.panes.HighscorePane;
+import Main.panes.OriginalLevel;
 import Main.PathBlock;
 import Main.SpriteAnimation;
-import javafx.animation.Animation;
 import javafx.geometry.Point2D;
 import javafx.scene.input.KeyCode;
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
+import lombok.Getter;
 import lombok.Setter;
-
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Objects;
 
+import static java.lang.Integer.parseInt;
+
 @Setter
+@Getter
 
 public class Player extends MoveableImgView {
     private static final String spritePath = "Images/PlayerSprite.png";
-    private AudioClip clip;
-    private Point2D hashMapPos = new Point2D(0,0);
-    private OriginalLevel parent;
+    private AudioClip audioClip;
     private Rectangle newPlayerPos = new Rectangle();
     private HashMap<Point2D, PathBlock> movableArea;
 
 
     public Player(int scale, OriginalLevel parent) {
-        super(spritePath, scale, 18,32, 32, 1);
-        this.parent = parent;
+        super(spritePath, scale, 18,32, 32, 1, parent);
+        this.offsetMoveLeft = 300;
+        this.offsetMoveRight = 0;
+        this.offsetMoveUp = 448;
+        this.offsetMoveDown = 150;
         movableArea = parent.getBlocks();
 
 
-        clip = new AudioClip(Objects.requireNonNull(getClass().getResource("/Sounds/wakawakabearfast.mp3")).toString());
-        clip.setCycleCount(MediaPlayer.INDEFINITE);
-        clip.setVolume(.2);
+        audioClip = new AudioClip(Objects.requireNonNull(getClass().getResource("/Sounds/wakawakabearfast.mp3")).toString());
+        audioClip.setCycleCount(MediaPlayer.INDEFINITE);
+        audioClip.setVolume(.2);
 
         //Centering and sizing image
         setAnimation(new SpriteAnimation(this, 3,0,0,18, width, height, Duration.millis(100)));
@@ -51,29 +54,29 @@ public class Player extends MoveableImgView {
             switch (moveQueue.peekLast()) {
                 case A -> {
                     if(moveLeft(moveQueue)){
-                        if(!clip.isPlaying())
-                            clip.play();
+                        if(!audioClip.isPlaying())
+                            audioClip.play();
                         return;
                     }
                 }
                 case D -> {
                     if(moveRight(moveQueue)){
-                        if(!clip.isPlaying())
-                            clip.play();
+                        if(!audioClip.isPlaying())
+                            audioClip.play();
                         return;
                     }
                 }
                 case W -> {
                     if(moveUp(moveQueue)){
-                        if(!clip.isPlaying())
-                            clip.play();
+                        if(!audioClip.isPlaying())
+                            audioClip.play();
                         return;
                     }
                 }
                 case S -> {
                     if(moveDown(moveQueue)){
-                        if(!clip.isPlaying())
-                            clip.play();
+                        if(!audioClip.isPlaying())
+                            audioClip.play();
                         return;
                     }
                 }
@@ -82,23 +85,23 @@ public class Player extends MoveableImgView {
 
         switch (Objects.requireNonNull(moveQueue.peek())){
             case A -> {
-                if(!clip.isPlaying())
-                    clip.play();
+                if(!audioClip.isPlaying())
+                    audioClip.play();
                 moveLeft();
             }
             case D -> {
-                if(!clip.isPlaying())
-                    clip.play();
+                if(!audioClip.isPlaying())
+                    audioClip.play();
                 moveRight();
             }
             case W -> {
-                if(!clip.isPlaying())
-                    clip.play();
+                if(!audioClip.isPlaying())
+                    audioClip.play();
                 moveUp();
             }
             case S -> {
-                if(!clip.isPlaying())
-                    clip.play();
+                if(!audioClip.isPlaying())
+                    audioClip.play();
                 moveDown();
             }
         }
@@ -142,9 +145,9 @@ public class Player extends MoveableImgView {
     @Override
     public void moveLeft(){
         if(canMove(KeyCode.A)){
-            offsetAndStartAnimation(300);
+            offsetAndStartAnimation(offsetMoveLeft);
             if(getTranslateX() == 0) {
-                setTranslateX(OriginalLevel.WIDTH);
+                setTranslateX(parentPane.getImageWidth());
                 return;
             }
             setTranslateX(getTranslateX() - speed);
@@ -155,8 +158,8 @@ public class Player extends MoveableImgView {
     @Override
     public void moveRight(){
         if(canMove(KeyCode.D)) {
-            offsetAndStartAnimation(0);
-            if((int)getTranslateX() == OriginalLevel.WIDTH) {
+            offsetAndStartAnimation(offsetMoveRight);
+            if((int)getTranslateX() == parentPane.getImageWidth()) {
                 setTranslateX(speed);
                 return;
             }
@@ -168,7 +171,7 @@ public class Player extends MoveableImgView {
     @Override
     public void moveUp(){
         if(canMove(KeyCode.W)) {
-            offsetAndStartAnimation(448);
+            offsetAndStartAnimation(offsetMoveUp);
             setTranslateY(getTranslateY() - speed);
             return;
         }
@@ -177,7 +180,7 @@ public class Player extends MoveableImgView {
     @Override
     public void moveDown(){
         if(canMove(KeyCode.S)){
-            offsetAndStartAnimation(150);
+            offsetAndStartAnimation(offsetMoveDown);
             setTranslateY(getTranslateY() + speed);
             return;
         }
@@ -208,7 +211,6 @@ public class Player extends MoveableImgView {
             }
 
             if(newPlayerPos.getX()==-1 && hashMapPos.getY() == 15){
-                System.out.println("Teleport");
                 setHashMapPos(new Point2D(28,hashMapPos.getY()));
                 consume();
                 return true;
@@ -240,8 +242,8 @@ public class Player extends MoveableImgView {
                 }
             }
             if(hashMapPos.equals(new Point2D(27, 14))){
-                if (newPlayerPos.getX() <= OriginalLevel.WIDTH + 1 && newPlayerPos.getY() == movableArea.get(hashMapPos).getCenter().getY()) {
-                    if (newPlayerPos.getX() == OriginalLevel.WIDTH+1)
+                if (newPlayerPos.getX() <= parentPane.getImageWidth() + 1 && newPlayerPos.getY() == movableArea.get(hashMapPos).getCenter().getY()) {
+                    if (newPlayerPos.getX() == parentPane.getImageWidth()+1)
                         setHashMapPos(new Point2D(0, hashMapPos.getY()));
                     consume();
                     return true;
@@ -293,20 +295,6 @@ public class Player extends MoveableImgView {
       return false;
     }
 
-    public void startAnimation(SpriteAnimation animation){
-        if(animation.getStatus() == Animation.Status.RUNNING)
-            return;
-
-        animation.playFromStart();
-    }
-
-    public void offsetAndStartAnimation(int offsetY){
-        if(animation.getOffsetY() !=offsetY)
-            animation.setOffsetY(offsetY);
-        if(animation.getStatus()!= Animation.Status.RUNNING)
-            startAnimation(animation);
-    }
-
     public void comparePosition(double pointX, double pointY){
         System.out.println("Player: "+getTranslateX()+", "+getTranslateY()+
                            "Point: "+ (int)pointX+", "+(int)pointY);
@@ -315,7 +303,7 @@ public class Player extends MoveableImgView {
     public void stopPlayer(){
         animation.setMidFrame();
         animation.pause();
-        clip.stop();
+        audioClip.stop();
     }
 
     private void setNewPlayerPos(int x, int y) {
@@ -323,11 +311,16 @@ public class Player extends MoveableImgView {
         newPlayerPos.setY(getTranslateY()+y);
     }
 
-    private void consume(){
+    @Override
+    protected void consume(){
         if(movableArea.get(hashMapPos).getConsumable()!= null){
             Consumable consumable = movableArea.get(hashMapPos).getConsumable();
-            parent.getChildren().remove(consumable);
+            parentPane.getChildren().remove(consumable);
+            parentPane.getSnackList().remove(consumable);
+
             movableArea.get(hashMapPos).setConsumable(null);
+            HighscorePane.setScore(parseInt(HighscorePane.getScore().getText())+10);
+
         }
     }
 }

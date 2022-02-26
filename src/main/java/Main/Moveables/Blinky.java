@@ -1,11 +1,15 @@
 package Main.Moveables;
 
-public class Blinky extends Ghost{
-    public Blinky(int scale, int speed, Player player) {
-        super("/Images/RedGhostSprite.png", scale, speed, player);
+import Main.panes.OriginalLevel;
 
-        //Center pos is x96 y92
-        setTranslateX(96*scale);
-        setTranslateY(92*scale);
+public class Blinky extends Ghost{
+    static int N;
+    public Blinky(int scale, int speed, Player player, OriginalLevel parent) {
+        super("/Images/RedGhostSprite.png", scale, speed, player, parent);
+
+
     }
+
+
+
 }

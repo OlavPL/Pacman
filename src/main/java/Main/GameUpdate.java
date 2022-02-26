@@ -1,20 +1,25 @@
 package Main;
 
+import Main.Moveables.Blinky;
 import Main.Moveables.Player;
 import javafx.animation.AnimationTimer;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
+import lombok.Getter;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+@Getter
 
 public class GameUpdate extends AnimationTimer {
     private final Deque<KeyCode> movementStack = new ArrayDeque<>();
     private final Player player;
+    private final Blinky blinky;
 
 
-    public GameUpdate(Player player) {
+    public GameUpdate(Player player, Blinky blinky) {
         this.player = player;
+        this.blinky = blinky;
         start();
     }
 
@@ -38,6 +43,9 @@ public class GameUpdate extends AnimationTimer {
                     movementStack.addLast(key);
                 }
             }
+            if(key == KeyCode.R){
+                Main.gameWon(player);
+            }
         });
     }
 
@@ -45,5 +53,7 @@ public class GameUpdate extends AnimationTimer {
         if(!movementStack.isEmpty()) {
             player.move(movementStack);
         }
+        if (movementStack.peek() != null)
+            blinky.move();
     }
 }
