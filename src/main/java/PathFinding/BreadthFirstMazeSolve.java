@@ -1,14 +1,17 @@
-package PathFindingTest;
+package PathFinding;
 
+import Main.Moveables.Player;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Queue;
 @Getter
+@Setter
 
 public class BreadthFirstMazeSolve extends MiniNode {
-    protected int[][] mazeMatrix;
+    protected boolean[][] mazeMatrix;
     protected int startC, startR;
     protected int endR;
     protected int endC;
@@ -30,15 +33,14 @@ public class BreadthFirstMazeSolve extends MiniNode {
         super(row, col, path);
     }
 
-    public BreadthFirstMazeSolve(int[][] mazeMatrix, int startR, int startC, int endR, int endC){
-        super(startR, startC);
+    public BreadthFirstMazeSolve(boolean[][] mazeMatrix, int startR, int startC, int endR, int endC){
+        super(startR,startC);
         this.mazeMatrix = mazeMatrix;
         visited = new boolean[mazeMatrix.length][mazeMatrix[0].length];
         this.startR = startR;
         this.startC = startC;
         this.endR = endR;
         this.endC = endC;
-        System.out.println("End Pos: "+endR+", "+endC);
     }
 
     public ArrayList<MiniNode> solveMaze(){
@@ -47,13 +49,13 @@ public class BreadthFirstMazeSolve extends MiniNode {
 
         while (queue.size() > 0){
             MiniNode tempNode = queue.remove();
-            System.out.println("Current Check: "+tempNode.currentRow+", "+tempNode.currentCol);
 
             if(tempNode.currentRow == endR && tempNode.currentCol == endC){
-                System.out.println("End Reached!");
                 parentPath = tempNode.getParentPath();
                 reachedEnd = true;
-                break;
+                moveCount = 0;
+                tempNode.getParentPath().remove(0);
+                return tempNode.getParentPath();
             }
 
             exploreNeighbours(tempNode);
@@ -64,10 +66,6 @@ public class BreadthFirstMazeSolve extends MiniNode {
                 nodesInNextQueue = 0;
                 moveCount++;
             }
-        }
-        if(reachedEnd) {
-            System.out.println("Step Count: "+moveCount);
-            return parentPath;
         }
         return null;
     }
@@ -86,7 +84,7 @@ public class BreadthFirstMazeSolve extends MiniNode {
             if(visited[newNode.currentRow][newNode.currentCol]) {
                 continue;
             }
-            if(mazeMatrix[newNode.currentRow][newNode.currentCol] != 1) {
+            if(!mazeMatrix[newNode.currentRow][newNode.currentCol]) {
                 continue;
             }
 
@@ -103,5 +101,15 @@ public class BreadthFirstMazeSolve extends MiniNode {
             string += "["+node.currentRow+", "+node.currentCol+"], ";
         }
         return string;
+    }
+
+    public void newSearch(Player player, int startR, int startC){
+        setStartR(startR);
+        setStartC(startC);
+        setCurrentRow(startR);
+        setCurrentCol(startC);
+        setEndR((int)player.getHashMapPos().getY());
+        setEndC((int)player.getHashMapPos().getX());
+        setVisited(new boolean[visited.length][visited[0].length]);
     }
 }

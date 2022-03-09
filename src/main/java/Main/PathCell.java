@@ -7,11 +7,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PathBlock extends Rectangle {
+public class PathCell extends Rectangle {
     private final boolean isGhostOnly;
     private final Point2D center;
     private Consumable consumable;
-    public PathBlock(float x, float y, float width, float height, boolean isGhostOnly, Consumable consumable){
+    public PathCell(float x, float y, float width, float height, boolean isGhostOnly, Consumable consumable){
         super(x,y,width,height);
         this.isGhostOnly = isGhostOnly;
         this.center = new Point2D(x+(int)width/2,y+(int)height/2);

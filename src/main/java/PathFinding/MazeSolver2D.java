@@ -1,4 +1,4 @@
-package PathFindingTest;
+package PathFinding;
 
 import javafx.geometry.Point2D;
 import javafx.scene.Node;

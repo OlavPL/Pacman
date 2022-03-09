@@ -1,4 +1,4 @@
-package PathFindingTest;
+package PathFinding;
 
 import javafx.scene.Node;
 import lombok.Getter;

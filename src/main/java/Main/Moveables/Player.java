@@ -1,9 +1,12 @@
 package Main.Moveables;
 
 import Main.Consumable;
+import Main.PowerSnack;
+import Main.panes.BottomPane;
+import Main.panes.GameOverPane;
 import Main.panes.HighscorePane;
 import Main.panes.OriginalLevel;
-import Main.PathBlock;
+import Main.PathCell;
 import Main.SpriteAnimation;
 import javafx.geometry.Point2D;
 import javafx.scene.input.KeyCode;
@@ -22,21 +25,23 @@ import static java.lang.Integer.parseInt;
 @Setter
 @Getter
 
-public class Player extends MoveableImgView {
+public class Player extends MovableImgView {
     private static final String spritePath = "Images/PlayerSprite.png";
+    private static int lives = 3;
     private AudioClip audioClip;
     private Rectangle newPlayerPos = new Rectangle();
-    private HashMap<Point2D, PathBlock> movableArea;
+    private HashMap<Point2D, PathCell> movableArea;
+    private BottomPane bottomPane;
 
 
-    public Player(int scale, OriginalLevel parent) {
+    public Player(int scale, OriginalLevel parent, BottomPane bottomPane) {
         super(spritePath, scale, 18,32, 32, 1, parent);
         this.offsetMoveLeft = 300;
         this.offsetMoveRight = 0;
         this.offsetMoveUp = 448;
         this.offsetMoveDown = 150;
-        movableArea = parent.getBlocks();
-
+        this.bottomPane = bottomPane;
+        movableArea = parent.getWalkablePath();
 
         audioClip = new AudioClip(Objects.requireNonNull(getClass().getResource("/Sounds/wakawakabearfast.mp3")).toString());
         audioClip.setCycleCount(MediaPlayer.INDEFINITE);
@@ -142,8 +147,7 @@ public class Player extends MoveableImgView {
     }
 
 //    Just movement
-    @Override
-    public void moveLeft(){
+      public void moveLeft(){
         if(canMove(KeyCode.A)){
             offsetAndStartAnimation(offsetMoveLeft);
             if(getTranslateX() == 0) {
@@ -195,7 +199,7 @@ public class Player extends MoveableImgView {
             setNewPlayerPos(-1,0);
 
             if (newPlayerPos.intersects(movableArea.get(hashMapPos).getBoundsInLocal())) {
-                PathBlock tempRectangle = movableArea.get(hashMapPos);
+                PathCell tempRectangle = movableArea.get(hashMapPos);
                 if(newPlayerPos.getX() >= tempRectangle.getCenter().getX()) {
                     consume();
                     return true;
@@ -229,9 +233,10 @@ public class Player extends MoveableImgView {
         if(key == KeyCode.D) {
             setNewPlayerPos(1, 0);
             if (newPlayerPos.intersects(movableArea.get(hashMapPos).getBoundsInLocal())) {
-                PathBlock tempRectangle = movableArea.get(hashMapPos);
+                PathCell tempRectangle = movableArea.get(hashMapPos);
                 if(newPlayerPos.getX() <= tempRectangle.getCenter().getX())
                     return true;
+
                 if(movableArea.containsKey(new Point2D(hashMapPos.getX()+1, hashMapPos.getY()))) {
                     if(tempRectangle.getCenter().getY() == newPlayerPos.getY()){
                         if(newPlayerPos.getX() >=tempRectangle.getX()+tempRectangle.getWidth())
@@ -255,7 +260,7 @@ public class Player extends MoveableImgView {
         if(key == KeyCode.W) {
             setNewPlayerPos(0,-1);
             if (newPlayerPos.intersects(movableArea.get(hashMapPos).getBoundsInLocal())) {
-                PathBlock tempRectangle = movableArea.get(hashMapPos);
+                PathCell tempRectangle = movableArea.get(hashMapPos);
                 if(newPlayerPos.getY() >= tempRectangle.getCenter().getY()) {
                     consume();
                     return true;
@@ -276,7 +281,7 @@ public class Player extends MoveableImgView {
         if(key == KeyCode.S) {
             setNewPlayerPos(0, +1);
             if (newPlayerPos.intersects(movableArea.get(hashMapPos).getBoundsInLocal())) {
-                PathBlock tempRectangle = movableArea.get(hashMapPos);
+                PathCell tempRectangle = movableArea.get(hashMapPos);
                 if (newPlayerPos.getY() <= tempRectangle.getCenter().getY()) {
                     consume();
                     return true;
@@ -315,12 +320,38 @@ public class Player extends MoveableImgView {
     protected void consume(){
         if(movableArea.get(hashMapPos).getConsumable()!= null){
             Consumable consumable = movableArea.get(hashMapPos).getConsumable();
+            if(consumable.getClass() == PowerSnack.class)
+                parentPane.getGameUpdate().makeVulnerable();
+
             parentPane.getChildren().remove(consumable);
             parentPane.getSnackList().remove(consumable);
-
             movableArea.get(hashMapPos).setConsumable(null);
             HighscorePane.setScore(parseInt(HighscorePane.getScore().getText())+10);
 
+            if(parentPane.getSnackList().isEmpty()){
+                Main.Main.gameRestart(this);
+            }
         }
     }
+
+    public boolean loseLife(){
+        if(Player.getLives() > 1) {
+            Player.reduceLives();
+            getAudioClip().stop();
+            getBottomPane().removeLife();
+            Main.Main.gameRestart(this);
+             return true;
+        }
+        return false;
+    }
+
+    public void gameOver(){
+        parentPane.getGameUpdate().stop();
+        bottomPane.resetLives();
+        Main.Main.getRoot().setCenter(new GameOverPane(this));
+    }
+
+    public static int getLives(){return lives;}
+    public static void setLives(int n){lives = n;}
+    public static void reduceLives(){lives--;}
 }
